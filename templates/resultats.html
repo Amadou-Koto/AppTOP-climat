@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats — {{ lieu }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container large">
+        <header>
+            <h1>📊 {{ lieu }}</h1>
+            <p class="subtitle">
+                {{ coords.latitude|round(4) }}° / {{ coords.longitude|round(4) }}°
+                · {{ nb_annees }} dernières années · Source : Open-Meteo / ERA5
+            </p>
+        </header>
+
+        <div class="export-bar">
+            <a href="/export/word" class="btn">📄 Word</a>
+            <a href="/export/excel" class="btn">📊 Excel</a>
+            <a href="/export/pdf" class="btn">📕 PDF</a>
+            <a href="/" class="btn btn-secondary">↺ Nouvelle analyse</a>
+        </div>
+
+        {% if extremes %}
+        <h2>⚡ Statistiques d'extrêmes climatiques</h2>
+        <div class="grille-extremes">
+            {% for cle, e in extremes.items() %}
+            <div class="carte-extreme">
+                <div class="extreme-icone">{{ e.icone }}</div>
+                <div class="extreme-corps">
+                    <div class="extreme-label">{{ e.label }}</div>
+                    <div class="extreme-valeur">{{ e.valeur }}</div>
+                    <div class="extreme-date">{{ e.date }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for tab in tableaux %}
+        <h2>{{ tab.config.icone }} {{ tab.config.label }}</h2>
+        <div class="tableau-wrapper">
+            <table class="data">
+                <thead>
+                    <tr>
+                        {% for h in tab.entetes %}<th>{{ h }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in tab.lignes %}
+                    <tr>
+                        <td>{{ ligne.mois }}</td>
+                        {% for h in tab.entetes[1:] %}
+                            <td>{{ "%.1f"|format(ligne[h]) }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
