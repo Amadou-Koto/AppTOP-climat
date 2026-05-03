@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide utilisateur — Analyse du Climat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Bandeau d'accueil identique aux autres pages -->
+        <div class="bandeau-accueil">
+            <h1>❓ Guide utilisateur</h1>
+            <p class="subtitle">Tout ce qu'il faut savoir pour utiliser App A. TOP</p>
+            <div class="header-actions">
+                <a href="/" class="btn-guide">🏠 Accueil</a>
+            </div>
+        </div>
+
+        <!-- ===== Section 1 : Qu'est-ce que c'est ===== -->
+        <div class="guide-section">
+            <h2>🌍 Qu'est-ce que cette application ?</h2>
+            <p>
+                <strong>App A. TOP — Analyse du Climat</strong> est une application en ligne
+                qui vous fournit les <strong>moyennes climatiques mensuelles</strong> de
+                n'importe quel lieu dans le monde, à partir de données satellites
+                NASA / Open-Meteo (réanalyses ERA5).
+            </p>
+            <p>Elle vous permet d'obtenir, en quelques secondes :</p>
+            <ul>
+                <li>🌡️ Les températures moyennes (minimales, maximales, moyennes)</li>
+                <li>🌧️ Les précipitations mensuelles</li>
+                <li>💧 L'humidité relative</li>
+                <li>💨 La vitesse du vent</li>
+                <li>☀️ L'ensoleillement</li>
+            </ul>
+            <p>
+                Vous pouvez analyser <strong>un seul lieu</strong> ou
+                <strong>comparer plusieurs lieux</strong> (jusqu'à 5) côte à côte,
+                puis exporter vos résultats en <strong>Word, Excel ou PDF</strong>.
+            </p>
+        </div>
+
+        <!-- ===== Section 2 : Comment analyser un lieu ===== -->
+        <div class="guide-section">
+            <h2>📍 Comment analyser un lieu</h2>
+            <ol>
+                <li>Sur la page d'accueil, choisissez le mode <strong>« Un lieu »</strong>.</li>
+                <li>
+                    Indiquez le lieu de l'une des trois manières possibles :
+                    <ul>
+                        <li><strong>Nom du lieu</strong> : tapez par exemple « Dakar, Sénégal »</li>
+                        <li><strong>Coordonnées GPS</strong> : saisissez la latitude et la longitude</li>
+                        <li><strong>Sur la carte</strong> : cliquez directement sur le point souhaité</li>
+                    </ul>
+                </li>
+                <li>
+                    Choisissez le <strong>nombre d'années</strong> à analyser (de 1 à 30 ans).
+                    Plus la période est longue, plus l'analyse est représentative,
+                    mais le calcul peut prendre quelques secondes de plus.
+                </li>
+                <li>Cochez les <strong>variables</strong> que vous souhaitez analyser.</li>
+                <li>Cliquez sur <strong>« Analyser »</strong>.</li>
+                <li>
+                    Sur la page de résultats, vous pourrez consulter les tableaux
+                    et graphiques mensuels, et <strong>exporter</strong> en Word, Excel ou PDF.
+                </li>
+            </ol>
+        </div>
+
+        <!-- ===== Section 3 : Comment comparer plusieurs lieux ===== -->
+        <div class="guide-section">
+            <h2>🔀 Comment comparer plusieurs lieux</h2>
+            <ol>
+                <li>
+                    Sur la page d'accueil, cliquez sur le bouton
+                    <strong>« 🔀 Comparer plusieurs lieux »</strong>.
+                </li>
+                <li>
+                    Saisissez les noms des lieux à comparer
+                    (de <strong>2 à 5 lieux</strong>). Cliquez sur
+                    <strong>« + Ajouter un lieu »</strong> pour ajouter une ligne.
+                </li>
+                <li>Choisissez le nombre d'années communes à analyser pour tous les lieux.</li>
+                <li>
+                    Cochez les variables à comparer. Les mêmes variables seront analysées
+                    pour tous les lieux.
+                </li>
+                <li>Cliquez sur <strong>« Analyser »</strong>.</li>
+                <li>
+                    Sur la page de résultats, vous verrez un <strong>tableau côte à côte</strong>
+                    pour chaque variable, ainsi qu'un résumé par lieu.
+                </li>
+            </ol>
+        </div>
+
+        <!-- ===== Section 4 : En cas de difficulté ===== -->
+        <div class="guide-section">
+            <h2>🛠️ En cas de difficulté</h2>
+
+            <div class="note-importante">
+                ⏳ <strong>Le premier appel peut prendre 30 à 60 secondes</strong> —
+                c'est normal. L'application est hébergée sur un serveur gratuit qui
+                « se réveille » lors de la première requête. Les requêtes suivantes
+                sont beaucoup plus rapides.
+            </div>
+
+            <p><strong>Si un lieu n'est pas reconnu :</strong></p>
+            <ul>
+                <li>Essayez d'ajouter le pays au nom (ex : « Saint-Louis, Sénégal »)</li>
+                <li>Ou utilisez le mode <strong>Coordonnées GPS</strong> ou <strong>Sur la carte</strong></li>
+            </ul>
+
+            <p><strong>Si l'analyse échoue ou prend trop de temps :</strong></p>
+            <ul>
+                <li>Réduisez le <strong>nombre d'années</strong> demandées (essayez 5 ou 10 ans)</li>
+                <li>Réduisez le <strong>nombre de variables</strong> cochées</li>
+                <li>Vérifiez votre connexion Internet</li>
+                <li>Rafraîchissez la page (F5) et réessayez</li>
+            </ul>
+
+            <p><strong>Si l'export Word/Excel/PDF ne fonctionne pas :</strong></p>
+            <ul>
+                <li>Assurez-vous d'avoir d'abord lancé une analyse</li>
+                <li>Si la session a expiré, relancez votre analyse</li>
+            </ul>
+        </div>
+
+        <a href="/" class="guide-retour">← Retour à l'accueil</a>
+
+    </div>
+
+    <footer class="app-footer">
+        © 2026 — App A. TOP · Tous droits réservés
+    </footer>
+
+</body>
+</html>
