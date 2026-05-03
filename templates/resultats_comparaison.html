@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison — Résultats</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin=""></script>
+</head>
+<body>
+    <div class="container large">
+        <header>
+            <h1>📊 Comparaison climatique</h1>
+            <p class="subtitle">
+                {{ lieux_noms|join(' · ') }} · {{ nb_annees }} dernières années
+                · Source : Open-Meteo / ERA5
+            </p>
+        </header>
+
+        <div class="export-bar">
+            <a href="/export/word" class="btn">📄 Word</a>
+            <a href="/export/excel" class="btn">📊 Excel</a>
+            <a href="/export/pdf" class="btn">📕 PDF</a>
+            <a href="/comparer" class="btn btn-secondary">↺ Nouvelle comparaison</a>
+        </div>
+
+        <h2>🗺️ Localisation des lieux comparés</h2>
+        <div id="carte"></div>
+
+        {% if extremes_par_lieu %}
+        <h2>⚡ Statistiques d'extrêmes par lieu</h2>
+        {% for nom_lieu, extremes in extremes_par_lieu.items() %}
+        <div class="bloc-extremes-lieu">
+            <h3 class="titre-extremes-lieu">📍 {{ nom_lieu }}</h3>
+            <div class="grille-extremes">
+                {% for cle, e in extremes.items() %}
+                <div class="carte-extreme">
+                    <div class="extreme-icone">{{ e.icone }}</div>
+                    <div class="extreme-corps">
+                        <div class="extreme-label">{{ e.label }}</div>
+                        <div class="extreme-valeur">{{ e.valeur }}</div>
+                        <div class="extreme-date">{{ e.date }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% for tab in tableaux %}
+        <h2>{{ tab.config.icone }} {{ tab.config.label }}</h2>
+        <div class="tableau-wrapper">
+            <table class="data">
+                <thead>
+                    <tr>
+                        {% for h in tab.entetes %}<th>{{ h }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in tab.lignes %}
+                    <tr>
+                        <td>{{ ligne.mois }}</td>
+                        {% for h in tab.entetes[1:] %}
+                            <td>{{ "%.1f"|format(ligne[h]) }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const lieux = {{ resumes_lieux|tojson }};
+        const couleurs = ["#1f77b4", "#d62728", "#2ca02c", "#ff7f0e", "#9467bd"];
+
+        const carte = L.map('carte');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(carte);
+
+        const groupe = L.featureGroup();
+
+        lieux.forEach((lieu, index) => {
+            const couleur = couleurs[index % couleurs.length];
+            const marqueur = L.circleMarker([lieu.latitude, lieu.longitude], {
+                radius: 12,
+                fillColor: couleur,
+                color: 'white',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.9
+            });
+
+            let contenuPopup = `
+                <div class="popup-lieu">
+                    <h3 style="color: ${couleur}; margin: 0 0 8px 0;">${lieu.nom}</h3>
+                    <p style="margin: 0 0 10px 0; font-size: 0.85em; color: #666;">
+                        ${lieu.latitude.toFixed(4)}° / ${lieu.longitude.toFixed(4)}°
+                    </p>
+                    <table class="popup-table">
+            `;
+
+            lieu.indicateurs.forEach(ind => {
+                const unite = ind.libelle
+                    .replace('Cumul annuel ', '')
+                    .replace('Moyenne ', '');
+                contenuPopup += `
+                    <tr>
+                        <td>${ind.icone} ${ind.label}</td>
+                        <td><strong>${ind.valeur} ${unite}</strong></td>
+                    </tr>
+                `;
+            });
+
+            contenuPopup += `</table></div>`;
+
+            marqueur.bindPopup(contenuPopup, { maxWidth: 300 });
+            marqueur.bindTooltip(lieu.nom, { permanent: false, direction: 'top' });
+            marqueur.addTo(groupe);
+        });
+
+        groupe.addTo(carte);
+
+        if (lieux.length === 1) {
+            carte.setView([lieux[0].latitude, lieux[0].longitude], 8);
+        } else {
+            carte.fitBounds(groupe.getBounds(), { padding: [40, 40] });
+        }
+
+        const legende = L.control({ position: 'bottomright' });
+        legende.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legende-carte');
+            let html = '<strong>Lieux</strong><br>';
+            lieux.forEach((lieu, i) => {
+                const couleur = couleurs[i % couleurs.length];
+                html += `<span class="puce" style="background:${couleur}"></span>${lieu.nom}<br>`;
+            });
+            div.innerHTML = html;
+            return div;
+        };
+        legende.addTo(carte);
+    </script>
+</body>
+</html>
