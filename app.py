@@ -28,6 +28,9 @@ def index():
 @app.route("/comparer", methods=["GET"])
 def comparer():
     return render_template("comparer.html", variables=VARIABLES)
+@app.route("/guide", methods=["GET"])
+def guide():
+    return render_template("guide.html")
 
 
 # ============================================================
