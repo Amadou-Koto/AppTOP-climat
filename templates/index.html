@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Étude climatique</title>
+    <title>Analyse du Climat — App A. TOP</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <link rel="stylesheet"
@@ -14,9 +14,32 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🌍 Étude climatique</h1>
+
+        <!-- ===== Bandeau d'accueil coloré ===== -->
+        <div class="bandeau-accueil">
+            <h1>🌍 Analyse du Climat</h1>
             <p class="subtitle">Analyse multi-variables · données ERA5 (Open-Meteo)</p>
+            <div class="header-actions">
+                <a href="/guide" class="btn-guide">❓ Guide</a>
+            </div>
+        </div>
+
+        <!-- ===== Encart de bienvenue ===== -->
+        <div class="encart-bienvenue">
+            <p>
+                Bienvenue sur <strong>App A. TOP</strong>. Cette application vous permet
+                d'obtenir les <strong>moyennes climatiques mensuelles</strong> (températures,
+                précipitations, humidité, vent, ensoleillement) de n'importe quel lieu dans
+                le monde, à partir de données satellites NASA / Open-Meteo.
+            </p>
+            <p>
+                Choisissez ci-dessous un lieu (par nom, coordonnées ou directement sur la carte),
+                puis cliquez sur <strong>Analyser</strong>. Vous pouvez aussi
+                <a href="/comparer">comparer plusieurs lieux</a> côte à côte.
+            </p>
+        </div>
+
+        <header>
             <div class="mode-switch">
                 <a href="/" class="mode-btn active">📍 Un lieu</a>
                 <a href="/comparer" class="mode-btn">🔀 Comparer plusieurs lieux</a>
@@ -102,6 +125,11 @@
             <button type="submit">Analyser</button>
         </form>
     </div>
+
+    <!-- ===== Footer copyright ===== -->
+    <footer class="app-footer">
+        © 2026 — App A. TOP · Tous droits réservés
+    </footer>
 
     <script>
         // Bascule entre les trois modes
