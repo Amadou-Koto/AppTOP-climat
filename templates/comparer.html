@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison climatique</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔀 Comparaison climatique</h1>
+            <p class="subtitle">Comparer 2 à 5 lieux sur les mêmes indicateurs</p>
+            <div class="mode-switch">
+                <a href="/" class="mode-btn">📍 Un lieu</a>
+                <a href="/comparer" class="mode-btn active">🔀 Comparer plusieurs lieux</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, msg in messages %}
+                <div class="flash {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form action="/analyser-comparaison" method="POST" class="card">
+            <div class="bloc-mode">
+                <label>Lieux à comparer (2 à 5)</label>
+                <div id="liste-lieux">
+                    <input type="text" name="nom_lieu" placeholder="Lieu 1 — ex : Dakar">
+                    <input type="text" name="nom_lieu" placeholder="Lieu 2 — ex : Thiès">
+                </div>
+                <button type="button" id="ajouter-lieu" class="btn-ajouter">
+                    + Ajouter un lieu
+                </button>
+            </div>
+
+            <div class="bloc-mode">
+                <label>Nombre d'années</label>
+                <input type="number" name="nb_annees" min="1" max="30" value="5">
+            </div>
+
+            <div class="bloc-mode">
+                <label>Variables à comparer</label>
+                <div class="grille-variables">
+                    {% for cle, cfg in variables.items() %}
+                    <label class="variable-item">
+                        <input type="checkbox" name="variables" value="{{ cle }}"
+                               {% if cle in ['temperature', 'pluie'] %}checked{% endif %}>
+                        <span class="icone">{{ cfg.icone }}</span>
+                        <span class="label">{{ cfg.label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit">Comparer</button>
+        </form>
+    </div>
+
+    <script>
+        const liste = document.getElementById('liste-lieux');
+        const btnAjouter = document.getElementById('ajouter-lieu');
+        let nbLieux = 2;
+
+        btnAjouter.addEventListener('click', () => {
+            if (nbLieux >= 5) {
+                btnAjouter.disabled = true;
+                return;
+            }
+            nbLieux++;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'nom_lieu';
+            input.placeholder = `Lieu ${nbLieux} — ex : Saint-Louis`;
+            liste.appendChild(input);
+            if (nbLieux >= 5) btnAjouter.disabled = true;
+        });
+    </script>
+</body>
+</html>
