@@ -165,3 +165,83 @@ def analyser_comparaison():
                 "entetes": ["Mois"] + list(pivot.columns),
                 "lignes": formater_tableau_comparaison(pivot),
             })
+
+        session["mode_export"] = "compare"
+        session["lieux_noms"] = noms_lieux
+        session["nb_annees"] = nb_annees
+        session["pivots_pickle"] = base64.b64encode(
+            pickle.dumps(pivots_compare)).decode()
+        session["extremes_pickle"] = base64.b64encode(
+            pickle.dumps(extremes_par_lieu)).decode()
+
+        return render_template("resultats_comparaison.html",
+                                lieux_noms=noms_lieux,
+                                lieux=lieux,
+                                resumes_lieux=resumes_lieux,
+                                extremes_par_lieu=extremes_par_lieu,
+                                nb_annees=nb_annees,
+                                tableaux=tableaux_html)
+
+    except ValueError as e:
+        flash(str(e), "error")
+        return redirect(url_for("comparer"))
+    except Exception as e:
+        flash(f"Erreur : {e}", "error")
+        return redirect(url_for("comparer"))
+
+
+# ============================================================
+# Exports
+# ============================================================
+@app.route("/export/<format>")
+def export(format):
+    if "pivots_pickle" not in session:
+        flash("Aucune donnée à exporter.", "error")
+        return redirect(url_for("index"))
+
+    pivots = pickle.loads(base64.b64decode(session["pivots_pickle"]))
+    nb_annees = session["nb_annees"]
+    mode_export = session.get("mode_export", "mono")
+    extremes = pickle.loads(base64.b64decode(session["extremes_pickle"])) \
+        if "extremes_pickle" in session else None
+
+    mimes = {
+        "word": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "excel": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "pdf": "application/pdf",
+    }
+    extensions = {"word": "docx", "excel": "xlsx", "pdf": "pdf"}
+
+    if mode_export == "mono":
+        lieu = session["lieu"]
+        coords = session["coords"]
+        if format == "word":
+            buf = export_word(lieu, coords, nb_annees, pivots, extremes)
+        elif format == "excel":
+            buf = export_excel(lieu, coords, nb_annees, pivots, extremes)
+        elif format == "pdf":
+            buf = export_pdf(lieu, coords, nb_annees, pivots, extremes)
+        else:
+            flash("Format inconnu.", "error")
+            return redirect(url_for("index"))
+        nom_fichier = f"climat_{lieu}.{extensions[format]}"
+    else:
+        lieux_noms = session["lieux_noms"]
+        if format == "word":
+            buf = export_word_comparaison(lieux_noms, nb_annees, pivots, extremes)
+        elif format == "excel":
+            buf = export_excel_comparaison(lieux_noms, nb_annees, pivots, extremes)
+        elif format == "pdf":
+            buf = export_pdf_comparaison(lieux_noms, nb_annees, pivots, extremes)
+        else:
+            flash("Format inconnu.", "error")
+            return redirect(url_for("index"))
+        nom_fichier = f"comparaison_climat.{extensions[format]}"
+
+    return send_file(buf, as_attachment=True,
+                     download_name=nom_fichier, mimetype=mimes[format])
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", debug=False, port=port)
