@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Étude climatique</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin=""></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🌍 Étude climatique</h1>
-            <p class="subtitle">Tableaux mensuels multi-variables</p>
+            <p class="subtitle">Analyse multi-variables · données ERA5 (Open-Meteo)</p>
             <div class="mode-switch">
                 <a href="/" class="mode-btn active">📍 Un lieu</a>
                 <a href="/comparer" class="mode-btn">🔀 Comparer plusieurs lieux</a>
@@ -33,6 +39,10 @@
                     <input type="radio" name="mode" value="coords"
                            onclick="switchMode('coords')"> Coordonnées GPS
                 </label>
+                <label class="onglet">
+                    <input type="radio" name="mode" value="carte"
+                           onclick="switchMode('carte')"> Sur la carte
+                </label>
             </div>
 
             <div id="bloc-nom" class="bloc-mode">
@@ -44,11 +54,28 @@
                 <div class="ligne-coords">
                     <div>
                         <label>Latitude</label>
-                        <input type="number" step="0.0001" name="latitude" placeholder="14.74">
+                        <input type="number" step="0.0001" name="latitude_gps" placeholder="14.74">
                     </div>
                     <div>
                         <label>Longitude</label>
-                        <input type="number" step="0.0001" name="longitude" placeholder="-17.49">
+                        <input type="number" step="0.0001" name="longitude_gps" placeholder="-17.49">
+                    </div>
+                </div>
+            </div>
+
+            <div id="bloc-carte" class="bloc-mode" style="display:none;">
+                <div class="aide-carte">
+                    💡 Cliquez n'importe où sur la carte pour placer un point. Vous pouvez zoomer/dézoomer avec la molette ou les boutons +/−.
+                </div>
+                <div id="carte-saisie"></div>
+                <div class="coords-carte">
+                    <div>
+                        <label>Latitude</label>
+                        <input type="text" name="latitude_carte" id="lat-carte" readonly placeholder="(cliquez sur la carte)">
+                    </div>
+                    <div>
+                        <label>Longitude</label>
+                        <input type="text" name="longitude_carte" id="lon-carte" readonly placeholder="(cliquez sur la carte)">
                     </div>
                 </div>
             </div>
@@ -77,11 +104,103 @@
     </div>
 
     <script>
+        // Bascule entre les trois modes
         function switchMode(mode) {
             document.getElementById('bloc-nom').style.display =
                 (mode === 'nom') ? 'block' : 'none';
             document.getElementById('bloc-coords').style.display =
                 (mode === 'coords') ? 'block' : 'none';
+            document.getElementById('bloc-carte').style.display =
+                (mode === 'carte') ? 'block' : 'none';
+
+            // Initialiser la carte si on bascule sur ce mode
+            if (mode === 'carte' && !window.carteInitialisee) {
+                setTimeout(initCarte, 50);
+            }
+        }
+
+        // Initialisation de la carte Leaflet
+        let carteSaisie, marqueurSaisie;
+
+        function initCarte() {
+            if (window.carteInitialisee) return;
+            window.carteInitialisee = true;
+
+            // Centre par défaut sur le Sénégal (Dakar)
+            carteSaisie = L.map('carte-saisie').setView([14.7, -14.5], 6);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(carteSaisie);
+
+            // Au clic, placer ou déplacer le marqueur
+            carteSaisie.on('click', function(e) {
+                const lat = e.latlng.lat;
+                const lon = e.latlng.lng;
+
+                if (marqueurSaisie) {
+                    marqueurSaisie.setLatLng(e.latlng);
+                } else {
+                    marqueurSaisie = L.circleMarker(e.latlng, {
+                        radius: 10,
+                        fillColor: '#185FA5',
+                        color: 'white',
+                        weight: 3,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(carteSaisie);
+                }
+
+                marqueurSaisie.bindPopup(
+                    `<strong>Point sélectionné</strong><br>
+                     ${lat.toFixed(4)}° / ${lon.toFixed(4)}°`,
+                    { closeButton: false }
+                ).openPopup();
+
+                // Remplir les champs de saisie
+                document.getElementById('lat-carte').value = lat.toFixed(4);
+                document.getElementById('lon-carte').value = lon.toFixed(4);
+            });
+        }
+
+        // Validation : recopier les coords du mode actif vers les bons champs
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            const form = e.target;
+
+            // Supprimer les anciens champs cachés
+            ['latitude', 'longitude'].forEach(name => {
+                const old = form.querySelector(`input[type="hidden"][name="${name}"]`);
+                if (old) old.remove();
+            });
+
+            if (mode === 'coords') {
+                const lat = form.querySelector('[name="latitude_gps"]').value;
+                const lon = form.querySelector('[name="longitude_gps"]').value;
+                if (lat && lon) {
+                    addHidden(form, 'latitude', lat);
+                    addHidden(form, 'longitude', lon);
+                }
+            } else if (mode === 'carte') {
+                const lat = document.getElementById('lat-carte').value;
+                const lon = document.getElementById('lon-carte').value;
+                if (lat && lon) {
+                    addHidden(form, 'latitude', lat);
+                    addHidden(form, 'longitude', lon);
+                } else {
+                    e.preventDefault();
+                    alert('Veuillez cliquer sur la carte pour placer un point.');
+                }
+            }
+        });
+
+        function addHidden(form, name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
         }
     </script>
 </body>
