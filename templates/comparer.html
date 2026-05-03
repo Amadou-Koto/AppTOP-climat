@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparaison climatique</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            crossorigin=""></script>
 </head>
 <body>
     <div class="container">
@@ -24,7 +30,19 @@
         {% endwith %}
 
         <form action="/analyser-comparaison" method="POST" class="card">
-            <div class="bloc-mode">
+
+            <div class="onglets">
+                <label class="onglet">
+                    <input type="radio" name="mode_saisie" value="texte" checked
+                           onclick="switchModeCompare('texte')"> Saisie par nom
+                </label>
+                <label class="onglet">
+                    <input type="radio" name="mode_saisie" value="carte"
+                           onclick="switchModeCompare('carte')"> Sur la carte
+                </label>
+            </div>
+
+            <div id="bloc-texte" class="bloc-mode">
                 <label>Lieux à comparer (2 à 5)</label>
                 <div id="liste-lieux">
                     <input type="text" name="nom_lieu" placeholder="Lieu 1 — ex : Dakar">
@@ -33,6 +51,14 @@
                 <button type="button" id="ajouter-lieu" class="btn-ajouter">
                     + Ajouter un lieu
                 </button>
+            </div>
+
+            <div id="bloc-carte" class="bloc-mode" style="display:none;">
+                <div class="aide-carte">
+                    💡 Cliquez sur la carte pour ajouter un lieu (jusqu'à 5). Cliquez à nouveau près d'un point pour le supprimer.
+                </div>
+                <div id="carte-saisie"></div>
+                <div id="liste-points-carte" style="margin-top: 12px;"></div>
             </div>
 
             <div class="bloc-mode">
@@ -59,6 +85,7 @@
     </div>
 
     <script>
+        // Mode saisie texte (existant)
         const liste = document.getElementById('liste-lieux');
         const btnAjouter = document.getElementById('ajouter-lieu');
         let nbLieux = 2;
@@ -76,6 +103,137 @@
             liste.appendChild(input);
             if (nbLieux >= 5) btnAjouter.disabled = true;
         });
+
+        // Bascule entre les deux modes
+        function switchModeCompare(mode) {
+            document.getElementById('bloc-texte').style.display =
+                (mode === 'texte') ? 'block' : 'none';
+            document.getElementById('bloc-carte').style.display =
+                (mode === 'carte') ? 'block' : 'none';
+
+            if (mode === 'carte' && !window.carteCompInitialisee) {
+                setTimeout(initCarteComparaison, 50);
+            }
+        }
+
+        // Carte de comparaison — multi-points
+        let carteComp;
+        let pointsComp = [];
+        const couleursComp = ['#1f77b4', '#d62728', '#2ca02c', '#ff7f0e', '#9467bd'];
+
+        function initCarteComparaison() {
+            if (window.carteCompInitialisee) return;
+            window.carteCompInitialisee = true;
+
+            carteComp = L.map('carte-saisie').setView([14.7, -14.5], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(carteComp);
+
+            carteComp.on('click', function(e) {
+                // Vérifier si on clique près d'un point existant pour le supprimer
+                for (let i = 0; i < pointsComp.length; i++) {
+                    const p = pointsComp[i];
+                    const dx = p.latlng.lat - e.latlng.lat;
+                    const dy = p.latlng.lng - e.latlng.lng;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 0.5) {
+                        carteComp.removeLayer(p.marker);
+                        pointsComp.splice(i, 1);
+                        rafraichirListePoints();
+                        return;
+                    }
+                }
+
+                // Sinon, ajouter un nouveau point (max 5)
+                if (pointsComp.length >= 5) {
+                    alert('Maximum 5 lieux pour la comparaison.');
+                    return;
+                }
+
+                const couleur = couleursComp[pointsComp.length];
+                const marqueur = L.circleMarker(e.latlng, {
+                    radius: 11,
+                    fillColor: couleur,
+                    color: 'white',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(carteComp);
+
+                pointsComp.push({
+                    latlng: e.latlng,
+                    marker: marqueur,
+                    couleur: couleur,
+                    nom: `Lieu ${pointsComp.length + 1}`
+                });
+
+                rafraichirListePoints();
+            });
+        }
+
+        function rafraichirListePoints() {
+            const container = document.getElementById('liste-points-carte');
+            container.innerHTML = '';
+
+            if (pointsComp.length === 0) {
+                container.innerHTML = '<p style="color:#5F5E5A; font-size:0.85rem; font-style:italic;">Aucun point sur la carte. Cliquez pour en ajouter.</p>';
+                return;
+            }
+
+            pointsComp.forEach((p, i) => {
+                const ligne = document.createElement('div');
+                ligne.style.cssText = 'display:flex; align-items:center; gap:10px; padding:8px 12px; background:white; border:0.5px solid #D3D1C7; border-radius:6px; margin-bottom:6px;';
+
+                ligne.innerHTML = `
+                    <span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:${p.couleur}; border:2px solid white; box-shadow:0 0 0 0.5px #888780; flex-shrink:0;"></span>
+                    <input type="text" placeholder="Nom du lieu ${i + 1}"
+                           value="${p.nom}"
+                           data-index="${i}"
+                           style="flex:1; padding:6px 10px; border:0.5px solid #D3D1C7; border-radius:4px; font-size:0.85rem;"
+                           onchange="pointsComp[${i}].nom = this.value">
+                    <span style="font-size:0.75rem; color:#5F5E5A; font-family:monospace;">
+                        ${p.latlng.lat.toFixed(3)}° / ${p.latlng.lng.toFixed(3)}°
+                    </span>
+                `;
+                container.appendChild(ligne);
+            });
+        }
+
+        // Validation : envoyer les données du mode actif
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const mode = document.querySelector('input[name="mode_saisie"]:checked').value;
+            const form = e.target;
+
+            if (mode === 'carte') {
+                if (pointsComp.length < 2) {
+                    e.preventDefault();
+                    alert('Veuillez placer au moins 2 points sur la carte.');
+                    return;
+                }
+
+                // Désactiver les inputs texte du mode "saisie par nom" pour qu'ils ne soient pas envoyés
+                document.querySelectorAll('#liste-lieux input').forEach(inp => {
+                    inp.disabled = true;
+                });
+
+                // Ajouter les points de la carte comme champs cachés
+                pointsComp.forEach((p) => {
+                    addHidden(form, 'nom_lieu', p.nom || `Point ${p.latlng.lat.toFixed(2)}`);
+                    addHidden(form, 'latitude_carte', p.latlng.lat.toFixed(4));
+                    addHidden(form, 'longitude_carte', p.latlng.lng.toFixed(4));
+                });
+            }
+        });
+
+        function addHidden(form, name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        }
     </script>
 </body>
 </html>
