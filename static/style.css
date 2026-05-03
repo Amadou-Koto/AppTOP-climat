@@ -1,0 +1,280 @@
+/* ============================================================
+   Reset et base
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px 12px;
+    color: #2c3e50;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Conteneurs
+   ============================================================ */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+.container.large { max-width: 1200px; }
+
+/* ============================================================
+   Header
+   ============================================================ */
+header {
+    text-align: center;
+    margin-bottom: 24px;
+    color: white;
+}
+
+header h1 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.subtitle {
+    opacity: 0.9;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    padding: 0 8px;
+}
+
+/* ============================================================
+   Bascule entre modes
+   ============================================================ */
+.mode-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.mode-btn {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.mode-btn:hover { background: rgba(255, 255, 255, 0.35); }
+.mode-btn.active { background: white; color: #667eea; }
+
+/* ============================================================
+   Carte (formulaire)
+   ============================================================ */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 600px) {
+    .card { padding: 30px; }
+}
+
+.onglets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.onglet {
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: background 0.2s;
+    font-size: 0.92rem;
+}
+
+.onglet:hover { background: #ecf0f1; }
+.onglet input { margin-right: 6px; }
+
+.bloc-mode { margin-bottom: 16px; }
+
+.bloc-mode label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #34495e;
+    font-size: 0.95rem;
+}
+
+.bloc-mode input,
+#liste-lieux input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+}
+
+.bloc-mode input:focus,
+#liste-lieux input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.ligne-coords {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ligne-coords > div {
+    flex: 1;
+    min-width: 140px;
+}
+
+#liste-lieux {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-ajouter {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: #ecf0f1;
+    color: #34495e;
+    border: 2px dashed #95a5a6;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    width: 100%;
+}
+
+.btn-ajouter:hover:not(:disabled) {
+    background: #d5dbdb;
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.btn-ajouter:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.1s;
+    -webkit-appearance: none;
+}
+
+button[type="submit"]:hover { transform: translateY(-1px); }
+
+/* ============================================================
+   Variables
+   ============================================================ */
+.grille-variables {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (min-width: 500px) {
+    .grille-variables { grid-template-columns: 1fr 1fr; }
+}
+
+.variable-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.9rem;
+    min-height: 44px;
+}
+
+.variable-item:hover { border-color: #667eea; background: #eef0fc; }
+.variable-item input[type="checkbox"] {
+    width: auto; margin: 0; accent-color: #667eea; cursor: pointer;
+    min-width: 18px; min-height: 18px;
+}
+.variable-item .icone { font-size: 1.2em; }
+.variable-item .label { flex: 1; }
+
+/* ============================================================
+   Messages flash
+   ============================================================ */
+.flash {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: #e74c3c;
+    color: white;
+    font-size: 0.95rem;
+}
+.flash.success { background: #27ae60; }
+
+/* ============================================================
+   Barre d'export
+   ============================================================ */
+.export-bar {
+    background: white;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+    flex: 1 1 auto;
+    min-width: 100px;
+    padding: 10px 14px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.2s;
+    text-align: center;
+    font-size: 0.92rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover { background: #5568d3; }
+.btn-secondary { background: #95a5a6; }
+.btn-secondary:hover { background: #7f8c8d; }
+
+/* ================================================
